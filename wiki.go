@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	//"fmt"
   "io/ioutil"
   //"os"
   "net/http"
@@ -42,10 +42,9 @@ func main() {
 func viewHandler(w http.ResponseWriter, r *http.Request) {
   //TODO to lower case
   title := r.URL.Path[len("/view/"):]
-  p,_ := loadPage(title)
-  fmt.Fprintf(w,"<h1>%s</h1>"+
-              "<div><h2>%s</h2></div>", p.Title, 
- p.Body)
+  p, _ := loadPage(title)
+  t, _ := template.ParseFiles("templates/view.html")
+  t.Execute(w, p)
 }
 
 // This function allows to edit Pages
@@ -55,10 +54,6 @@ func editHandler( w http.ResponseWriter, r *http.Request){
   if err != nil {
     p = &Page{Title: title}
   }
-  fmt.Fprintf(w, "<h1>Editing <i>%s</i></h1>"+
-             "<form action=\"/save/%s\" method=\"POST\">"+
-             "<textarea name=\"body\">%s</textarea><br>"+
-             "<input type=\"submit\" value=\"Save\">"+
-             "</form>",
-             p.Title, p.Title, p.Body)
+  t,_ := template.ParseFiles("templates/edit.html")
+  t.Execute(w, p)
 }
