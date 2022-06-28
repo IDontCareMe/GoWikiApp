@@ -17,3 +17,6 @@
 # Replit.com IDE files
 .replit
 replit.nix
+
+#Pages and texts
+*.txt
