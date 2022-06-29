@@ -9,6 +9,7 @@ import (
   "log"
   "html/template"
   "regexp"
+  "errors"
 )
 
 // Pages
@@ -50,7 +51,11 @@ func main() {
 // This function handles URL with prefix "/view/"
 func viewHandler(w http.ResponseWriter, r *http.Request) {
   //TODO to lower case
-  title := r.URL.Path[len("/view/"):]
+  //title := r.URL.Path[len("/view/"):]
+  title, err := getTitle(w, r)
+  if err != nil {
+    return
+  }
   p, err := loadPage(title)
   if err != nil {
     http.Redirect(w, r, "/edit/" + title, http.StatusFound)
@@ -61,7 +66,11 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 
 // This function allows to edit Pages
 func editHandler( w http.ResponseWriter, r *http.Request) {
-  title := r.URL.Path[len("/edit/"):]
+  //title := r.URL.Path[len("/edit/"):]
+  title, err := getTitle(w, r)
+  if err != nil {
+    return
+  }
   p, err := loadPage(title)
   if err != nil {
     p = &Page{Title: title}
@@ -71,10 +80,14 @@ func editHandler( w http.ResponseWriter, r *http.Request) {
 
 // This function saves the pages
 func saveHandler( w http.ResponseWriter, r *http.Request) {
-  title := r.URL.Path[len("/save/"):]
+  //title := r.URL.Path[len("/save/"):]
+  title, err := getTitle(w, r)
+  if err != nil {
+    return
+  }
   body := r.FormValue("body")
   p := &Page{ Title: title, Body: []byte(body) }
-  err := p.Save()
+  err = p.Save()
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
     return
@@ -84,14 +97,18 @@ func saveHandler( w http.ResponseWriter, r *http.Request) {
 
 // This function read and parse template
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-  /*t,err := template.ParseFiles(tmpl + ".html")
-  if err != nil {
-    http.Error(w, err.Error(), http.StatusInternalServerError)
-    return
-  }
-  t.Execute(w, p)*/
   err := templates.ExecuteTemplate(w, tmpl, p)
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
   }
+}
+
+// This function checks title and returns valid path
+func getTitle(w http.ResponseWriter, r *http.Request) (string, error) {
+  m := validPath.FindStringSubmatch(r.URL.Path)
+  if m == nil {
+    http.NotFound(w, r)
+    return "", errors.New("Invalid Page Title")
+  }
+  return m[2], nil
 }
