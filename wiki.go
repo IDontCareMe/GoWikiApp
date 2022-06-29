@@ -2,12 +2,13 @@
 package main
 
 import (
-	"fmt"
+	//"fmt"
   "io/ioutil"
   //"os"
   "net/http"
   "log"
   "html/template"
+  "regexp"
 )
 
 // Pages
@@ -35,6 +36,9 @@ func loadPage(title string) (*Page, error) {
 
 // Templates
 var templates = template.Must(template.ParseFiles("templates/view.html", "templates/edit.html"))
+
+//
+var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-z0-9]+)$")
 
 func main() {
 	http.HandleFunc("/view/", viewHandler)
